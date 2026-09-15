@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "title": "Арт-маркет «Осенний двор»",
+    "organization_id": 1,
+    "date": "2026-10-04",
+    "location": "Флакон, Москва",
+    "volunteers_needed": 8
+  },
+  {
+    "id": 2,
+    "title": "Ярмарка ручной работы",
+    "organization_id": 2,
+    "date": "2026-10-18",
+    "location": "Парк Горького, Москва",
+    "volunteers_needed": 5
+  }
+]
