@@ -1,9 +1,5 @@
 """Начальный сценарий индивидуального проекта (ПР1).
 
-Сохранён без изменений для истории проекта, как того требует ПР2:
-реализованная здесь логика позже переносится в модуль registrations.py
-и дорабатывается для работы с коллекциями (см. registrations.py,
-функция get_registration_status).
 """
 from datetime import date
 
@@ -13,16 +9,19 @@ volunteers_needed = 8
 volunteers_registered = 8
 event_date = date(2026, 10, 4)
 
+# переехала целиком без изменений в registrations.py
 
-def format_event_info(title: str, organization: str, when: date) -> str:
+def format_event_info(title: str, organization: str, when: date) -> str: 
     """Сформировать строку с краткой информацией о мероприятии."""
     return f"{title} ({organization}), дата проведения: {when}"
 
+ # превратилась в free_slots() в registrations.py
 
 def slots_available(needed: int, registered: int) -> bool:
     """Проверить, остались ли свободные места волонтёров."""
     return registered < needed
 
+ # её логику вывода взяла на себя show_events() в main.py
 
 def get_registration_status(is_available: bool) -> str:
     """Вернуть текстовый статус набора волонтёров на мероприятие."""
