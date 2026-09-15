@@ -8,7 +8,7 @@
 from datetime import date
 
 event_title = "Арт-маркет «Осенний двор»"
-organization_name = "АртПространство «Флакон»"
+organization_name = "АртПространство «Лук»"
 volunteers_needed = 8
 volunteers_registered = 8
 event_date = date(2026, 10, 4)
@@ -32,4 +32,5 @@ def get_registration_status(is_available: bool) -> str:
 
 
 print(format_event_info(event_title, organization_name, event_date))
-print(get_registration_status(slots_available(volunteers_needed, volunteers_registered)))
+availability = slots_available(volunteers_needed, volunteers_registered)
+print(get_registration_status(availability))

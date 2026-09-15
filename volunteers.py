@@ -16,7 +16,9 @@ def add_volunteer(
     return volunteer_id
 
 
-def find_volunteers_by_skill(volunteers: dict[int, dict], skill: str) -> Iterator[dict]:
+def find_volunteers_by_skill(
+    volunteers: dict[int, dict], skill: str
+) -> Iterator[dict]:
     """Отобрать волонтёров, владеющих указанным навыком (генератор)."""
     skill = skill.lower()
     for volunteer in volunteers.values():

@@ -26,10 +26,16 @@ def add_event(
 def find_event(events: dict[int, dict], query: str) -> list[dict]:
     """Найти мероприятия по подстроке в названии."""
     query = query.lower()
-    return [event for event in events.values() if query in event["title"].lower()]
+    return [
+        event
+        for event in events.values()
+        if query in event["title"].lower()
+    ]
 
 
-def filter_events_by_date(events: dict[int, dict], event_date: date) -> list[dict]:
+def filter_events_by_date(
+    events: dict[int, dict], event_date: date
+) -> list[dict]:
     """Отобрать мероприятия, проходящие в указанную дату (генератор)."""
     target = event_date.isoformat()
     return list(event for event in events.values() if event["date"] == target)

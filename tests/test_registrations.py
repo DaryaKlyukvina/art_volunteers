@@ -1,4 +1,8 @@
-from registrations import create_registration, free_slots, is_registration_possible
+from registrations import (
+    create_registration,
+    free_slots,
+    is_registration_possible,
+)
 
 
 def make_events():

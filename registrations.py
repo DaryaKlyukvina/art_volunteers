@@ -1,7 +1,11 @@
 """Функции регистрации волонтёров на мероприятия."""
 
 
-def free_slots(events: dict[int, dict], registrations: list[dict], event_id: int) -> int:
+def free_slots(
+    events: dict[int, dict],
+    registrations: list[dict],
+    event_id: int,
+) -> int:
     """Вернуть количество свободных мест волонтёров на мероприятии."""
     event = events.get(event_id)
     if event is None:
@@ -32,10 +36,14 @@ def create_registration(
     event_id: int,
     volunteer_id: int,
 ) -> dict:
-    """Зарегистрировать волонтёра на мероприятие и вернуть запись о регистрации."""
-    if not is_registration_possible(events, registrations, event_id, volunteer_id):
+    """Зарегистрировать волонтёра на мероприятие и вернуть
+    запись о регистрации."""
+    if not is_registration_possible(
+        events, registrations, event_id, volunteer_id
+    ):
         raise ValueError(
-            "Регистрация невозможна: мест нет или волонтёр уже зарегистрирован"
+            "Регистрация невозможна: мест нет или волонтёр"
+            " уже зарегистрирован"
         )
     registration_id = max((r["id"] for r in registrations), default=0) + 1
     registration = {
@@ -47,7 +55,9 @@ def create_registration(
     return registration
 
 
-def cancel_registration(registrations: list[dict], registration_id: int) -> bool:
+def cancel_registration(
+    registrations: list[dict], registration_id: int
+) -> bool:
     """Отменить регистрацию по её id. Вернуть True при успехе."""
     for index, registration in enumerate(registrations):
         if registration["id"] == registration_id:

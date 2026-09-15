@@ -35,7 +35,8 @@ def show_events(events_data: dict[int, dict]) -> None:
     for event in events.sort_events_by_date(events_data):
         print(
             f"[{event['id']}] {event['title']} — {event['date']} — "
-            f"{event['location']} (нужно волонтёров: {event['volunteers_needed']})"
+            f"{event['location']} (волонтёров: "
+            f"{event['volunteers_needed']})"
         )
 
 
@@ -45,7 +46,10 @@ def show_registrations(registrations_data: list[dict]) -> None:
         print("Регистраций пока нет")
         return
     for reg in registrations_data:
-        print(f"[{reg['id']}] мероприятие {reg['event_id']} — волонтёр {reg['volunteer_id']}")
+        print(
+            f"[{reg['id']}] мероприятие {reg['event_id']} — "
+            f"волонтёр {reg['volunteer_id']}"
+        )
 
 
 def main() -> None:
@@ -69,7 +73,9 @@ def main() -> None:
         elif choice == "3":
             event_id = input_int("ID мероприятия: ")
             try:
-                free = registrations.free_slots(events_data, registrations_data, event_id)
+                free = registrations.free_slots(
+                    events_data, registrations_data, event_id
+                )
                 print(f"Свободных мест: {free}")
             except KeyError as error:
                 print(error)
@@ -92,7 +98,9 @@ def main() -> None:
 
         elif choice == "5":
             registration_id = input_int("ID регистрации для отмены: ")
-            if registrations.cancel_registration(registrations_data, registration_id):
+            if registrations.cancel_registration(
+                registrations_data, registration_id
+            ):
                 storage.save_list(REGISTRATIONS_FILE, registrations_data)
                 print("Регистрация отменена")
             else:
@@ -113,14 +121,20 @@ def main() -> None:
             event_date = input_date("Дата (ДД.ММ.ГГГГ): ")
             location = input("Место проведения: ")
             needed = input_int("Сколько нужно волонтёров: ")
-            events.add_event(events_data, title, organization_id, event_date, location, needed)
+            events.add_event(
+                events_data, title, organization_id, event_date, location,
+                needed
+            )
             storage.save_dict(EVENTS_FILE, events_data)
 
         elif choice == "9":
             name = input("Имя волонтёра: ")
             contact = input("Контакт: ")
             skills_raw = input("Навыки через запятую: ")
-            skills = [skill.strip() for skill in skills_raw.split(",") if skill.strip()]
+            skills = [
+                skill.strip() for skill in skills_raw.split(",")
+                if skill.strip()
+            ]
             volunteers.add_volunteer(volunteers_data, name, contact, skills)
             storage.save_dict(VOLUNTEERS_FILE, volunteers_data)
 
