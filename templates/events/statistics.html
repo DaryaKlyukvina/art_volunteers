@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Статистика — ArtVolunteers{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Статистика</h1>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card card-body stat"><span class="stat-value">{{ event_stats.published }}</span>опубликовано мероприятий</div></div>
+    <div class="col-md-3"><div class="card card-body stat"><span class="stat-value">{{ event_stats.upcoming }}</span>предстоящих</div></div>
+    <div class="col-md-3"><div class="card card-body stat"><span class="stat-value">{{ event_stats.volunteers_needed|default:0 }}</span>волонтёров нужно на предстоящие</div></div>
+    <div class="col-md-3"><div class="card card-body stat"><span class="stat-value">{{ application_stats.total }}</span>заявок всего</div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <h2 class="h5">Заявки по статусам</h2>
+        <table class="table table-sm">
+            <tr><th>Статус</th><th>Количество</th></tr>
+            <tr><td>На рассмотрении</td><td>{{ application_stats.pending }}</td></tr>
+            <tr><td>Принята</td><td>{{ application_stats.accepted }}</td></tr>
+            <tr><td>Отклонена</td><td>{{ application_stats.rejected }}</td></tr>
+        </table>
+        <p class="text-muted small">Тот же расчёт через values() + annotate():</p>
+        <ul class="small">
+            {% for row in by_status %}<li>{{ row.status }} — {{ row.total }}</li>{% empty %}<li>Заявок нет</li>{% endfor %}
+        </ul>
+    </div>
+    <div class="col-lg-4">
+        <h2 class="h5">Категории</h2>
+        <table class="table table-sm">
+            <tr><th>Категория</th><th>Опубликовано</th></tr>
+            {% for category in categories %}
+                <tr><td>{{ category.name }}</td><td>{{ category.events_count }}</td></tr>
+            {% empty %}
+                <tr><td colspan="2">Категорий нет</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="col-lg-4">
+        <h2 class="h5">Организации</h2>
+        <table class="table table-sm">
+            <tr><th>Организация</th><th>Мероприятий</th><th>Принято волонтёров</th></tr>
+            {% for organization in organizations %}
+                <tr><td>{{ organization.name }}</td><td>{{ organization.events_count }}</td><td>{{ organization.accepted_volunteers }}</td></tr>
+            {% empty %}
+                <tr><td colspan="3">Организаций нет</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+{% endblock %}
