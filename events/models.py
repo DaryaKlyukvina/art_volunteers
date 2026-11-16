@@ -31,12 +31,19 @@ class Event(models.Model):
     category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True,
                                  related_name="events", verbose_name="Категория")
     date = models.DateTimeField("Дата и время проведения")
-    location = models.CharField("Место проведения", max_length=255)
-    volunteers_needed = models.PositiveIntegerField("Нужно волонтёров", default=0,
-                                                    validators=[MinValueValidator(0)])
-    ticket_url = models.URLField("Ссылка на покупку билетов", blank=True)
+    location = models.CharField("Место проведения", max_length=255,
+                                help_text="Город и площадка, например: «Москва, Флакон».")
+    volunteers_needed = models.PositiveIntegerField(
+        "Нужно волонтёров", default=0, validators=[MinValueValidator(0)],
+        help_text="Сколько заявок организатор может принять. Свободные места = это число минус принятые заявки.",
+    )
+    ticket_url = models.URLField("Ссылка на покупку билетов", blank=True,
+                                 help_text="Необязательно. Внешний сайт продажи билетов.")
     image = models.ImageField("Изображение мероприятия", upload_to="events/", blank=True, null=True)
-    status = models.CharField("Статус", max_length=20, choices=Status.choices, default=Status.DRAFT)
+    status = models.CharField(
+        "Статус", max_length=20, choices=Status.choices, default=Status.DRAFT,
+        help_text="На сайте показываются только опубликованные мероприятия.",
+    )
     created_at = models.DateTimeField("Дата создания", auto_now_add=True)
 
     class Meta:
