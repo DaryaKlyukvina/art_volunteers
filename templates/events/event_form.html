@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_new %}Новое мероприятие{% else %}Редактирование{% endif %} — {{ site_name }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-3">{% if is_new %}Новое мероприятие{% else %}Редактирование: {{ event.title }}{% endif %}</h1>
+
+{# enctype нужен для передачи файла изображения в request.FILES; csrf_token защищает POST-запрос #}
+<form method="post" enctype="multipart/form-data" class="card card-body event-form" novalidate>
+    {% csrf_token %}
+
+    {# Общие ошибки формы (из метода clean): например, занятая площадка #}
+    {% if form.non_field_errors %}
+        <div class="alert alert-danger">
+            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+        </div>
+    {% endif %}
+
+    <div class="row g-3">
+        {% for field in form %}
+            <div class="{% if field.name == 'description' or field.name == 'image' %}col-12{% else %}col-md-6{% endif %}">
+                <label class="form-label" for="{{ field.id_for_label }}">
+                    {{ field.label }}{% if field.field.required %} <span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                {# Ошибки конкретного поля #}
+                {% for error in field.errors %}<div class="invalid-feedback d-block">{{ error }}</div>{% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="btn btn-primary">{% if is_new %}Создать мероприятие{% else %}Сохранить изменения{% endif %}</button>
+        <a class="btn btn-outline-secondary" href="{% url 'organizer_events' %}">Отмена</a>
+    </div>
+</form>
+{% endblock %}

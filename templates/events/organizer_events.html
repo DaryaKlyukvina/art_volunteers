@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Мероприятия организации — {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Мероприятия организации</h1>
+    <a class="btn btn-primary" href="{% url 'event_create' %}">+ Новое мероприятие</a>
+</div>
+<p class="text-muted">Организации: {% for organization in organizations %}{{ organization.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+
+<div class="table-responsive">
+<table class="table align-middle">
+    <thead>
+        <tr><th>Мероприятие</th><th>Дата</th><th>Площадка</th><th>Статус</th><th>Волонтёры</th><th></th></tr>
+    </thead>
+    <tbody>
+    {% for event in events %}
+        <tr class="{% if event.status == 'cancelled' %}table-secondary{% endif %}">
+            <td>
+                {% if event.status == "published" %}<a href="{{ event.get_absolute_url }}">{{ event.title }}</a>{% else %}{{ event.title }}{% endif %}
+                <div class="small text-muted">{{ event.organization.name }}</div>
+            </td>
+            <td>{{ event.date|date:"d.m.Y H:i" }}</td>
+            <td>{{ event.location }}</td>
+            <td><span class="badge event-status-{{ event.status }}">{{ event.get_status_display }}</span></td>
+            <td>{{ event.accepted_count }} / {{ event.volunteers_needed }}</td>
+            <td class="text-end text-nowrap">
+                {% if event.status != "cancelled" %}
+                    <a class="btn btn-sm btn-outline-primary" href="{% url 'event_update' event.pk %}">Изменить</a>
+                    {# Отмена — только POST-запросом с CSRF-токеном, не обычной ссылкой #}
+                    <form method="post" action="{% url 'event_cancel' event.pk %}" class="d-inline"
+                          onsubmit="return confirm('Отменить мероприятие «{{ event.title|escapejs }}»?');">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Отменить</button>
+                    </form>
+                {% endif %}
+            </td>
+        </tr>
+    {% empty %}
+        <tr><td colspan="6" class="text-muted">Мероприятий пока нет.</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

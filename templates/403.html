@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}Доступ запрещён{% endblock %}
+
+{% block content %}
+<h1>403 — доступ запрещён</h1>
+<p>{{ exception|default:"У вас нет прав для этого действия." }}</p>
+<p><a href="{% url 'event_list' %}">Перейти к каталогу мероприятий</a></p>
+{% endblock %}

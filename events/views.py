@@ -1,14 +1,18 @@
 from datetime import date
 
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
 from django.db.models import Count, Q, Sum
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from applications.models import VolunteerApplication
 from organizations.models import Organization
 
-from .forms import EventFilterForm
+from .forms import EventFilterForm, EventForm
 from .models import Category, Event
 
 # Допустимые варианты сортировки: значение поля sort формы -> поля order_by().
@@ -126,3 +130,80 @@ def statistics(request):
         "by_status": by_status,
     }
     return render(request, "events/statistics.html", context)
+
+
+# ---------------------------------------------------------------------------
+# Управление мероприятиями сотрудником организации (формы ПР11)
+# ---------------------------------------------------------------------------
+
+def user_organizations(user):
+    """Организации, мероприятиями которых пользователь может управлять."""
+    if user.is_superuser:
+        return Organization.objects.order_by("name")
+    return Organization.objects.filter(members__user=user).order_by("name")
+
+
+def managed_events(user):
+    return Event.objects.filter(organization__in=user_organizations(user))
+
+
+@login_required
+def organizer_events(request):
+    organizations = user_organizations(request.user)
+    if not organizations.exists():
+        raise PermissionDenied("Управлять мероприятиями могут только сотрудники организаций.")
+    events = (
+        managed_events(request.user)
+        .select_related("organization", "category")
+        .with_free_slots()
+        .order_by("-date")
+    )
+    return render(request, "events/organizer_events.html", {"events": events, "organizations": organizations})
+
+
+@login_required
+def event_create(request):
+    organizations = user_organizations(request.user)
+    if not organizations.exists():
+        raise PermissionDenied("Создавать мероприятия могут только сотрудники организаций.")
+    if request.method == "POST":
+        # Привязанная форма: данные из POST и загруженные файлы из request.FILES
+        form = EventForm(request.POST, request.FILES, organizations=organizations)
+        if form.is_valid():
+            event = form.save()
+            messages.success(request, f"Мероприятие «{event.title}» создано.")
+            return redirect("organizer_events")
+    else:
+        # GET: пустая (непривязанная) форма
+        form = EventForm(organizations=organizations)
+    return render(request, "events/event_form.html", {"form": form, "is_new": True})
+
+
+@login_required
+def event_update(request, pk):
+    # Чужое или несуществующее мероприятие -> 404
+    event = get_object_or_404(managed_events(request.user), pk=pk)
+    if event.status == Event.Status.CANCELLED:
+        messages.error(request, "Отменённое мероприятие нельзя редактировать.")
+        return redirect("organizer_events")
+    organizations = user_organizations(request.user)
+    if request.method == "POST":
+        # instance=event: форма изменяет существующую запись, а не создаёт новую
+        form = EventForm(request.POST, request.FILES, instance=event, organizations=organizations)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Изменения в «{event.title}» сохранены.")
+            return redirect("organizer_events")
+    else:
+        form = EventForm(instance=event, organizations=organizations)
+    return render(request, "events/event_form.html", {"form": form, "event": event, "is_new": False})
+
+
+@login_required
+@require_POST
+def event_cancel(request, pk):
+    """Отмена только POST-запросом с CSRF-токеном; запись остаётся в базе со статусом «Отменено»."""
+    event = get_object_or_404(managed_events(request.user), pk=pk)
+    event.cancel()
+    messages.success(request, f"Мероприятие «{event.title}» отменено. Площадка на эту дату освобождена.")
+    return redirect("organizer_events")
