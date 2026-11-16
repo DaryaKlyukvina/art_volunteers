@@ -35,23 +35,18 @@ class VolunteerApplicationTests(TestCase):
 
     def test_duplicate_application_is_forbidden_by_database_constraint(self):
         VolunteerApplication.objects.create(
-            user=self.user,
-            event=self.event,
-            applicant_name="Анна",
-            contact="anna@example.com")
+            user=self.user, event=self.event, applicant_name="Анна", contact="anna@example.com")
         from django.db import IntegrityError, transaction
         with self.assertRaises(IntegrityError), transaction.atomic():
             VolunteerApplication.objects.create(
-                user=self.user,
-                event=self.event,
-                applicant_name="Анна",
-                contact="anna@example.com")
+                user=self.user, event=self.event, applicant_name="Анна", contact="anna@example.com")
 
     def test_organizer_can_accept_application(self):
         application = VolunteerApplication.objects.create(
             user=self.user, event=self.event, applicant_name="Анна", contact="anna@example.com")
         self.client.login(username="organizer", password="StrongPass123!")
-        response = self.client.post(reverse("change_application_status", args=[application.pk]), {"status": "accepted"})
+        response = self.client.post(
+            reverse("change_application_status", args=[application.pk]), {"status": "accepted"})
         self.assertRedirects(response, reverse("organization_applications"))
         application.refresh_from_db()
         self.assertEqual(application.status, VolunteerApplication.Status.ACCEPTED)
@@ -61,7 +56,8 @@ class VolunteerApplicationTests(TestCase):
         application = VolunteerApplication.objects.create(
             user=self.user, event=self.event, applicant_name="Анна", contact="anna@example.com")
         self.client.login(username="outsider", password="StrongPass123!")
-        response = self.client.post(reverse("change_application_status", args=[application.pk]), {"status": "accepted"})
+        response = self.client.post(
+            reverse("change_application_status", args=[application.pk]), {"status": "accepted"})
         self.assertEqual(response.status_code, 403)
 
     def test_invalid_contact_does_not_create_application(self):
@@ -74,16 +70,10 @@ class VolunteerApplicationTests(TestCase):
 
     def test_accepting_more_than_capacity_is_rejected(self):
         first = VolunteerApplication.objects.create(
-            user=self.user,
-            event=self.event,
-            applicant_name="Анна",
-            contact="anna@example.com")
+            user=self.user, event=self.event, applicant_name="Анна", contact="anna@example.com")
         second_user = User.objects.create_user(username="volunteer2", password="StrongPass123!")
         second = VolunteerApplication.objects.create(
-            user=second_user,
-            event=self.event,
-            applicant_name="Пётр",
-            contact="petr@example.com")
+            user=second_user, event=self.event, applicant_name="Пётр", contact="petr@example.com")
         from applications.services import set_application_status
         from django.core.exceptions import ValidationError
         set_application_status(first, VolunteerApplication.Status.ACCEPTED)

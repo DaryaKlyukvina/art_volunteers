@@ -42,10 +42,10 @@ def apply_to_event(request, event_id):
             messages.success(request, "Заявка отправлена организатору.")
             return redirect("profile")
     else:
-        form = VolunteerApplicationForm(
-            initial={
-                "applicant_name": request.user.get_full_name() or request.user.username,
-                "contact": request.user.email})
+        form = VolunteerApplicationForm(initial={
+            "applicant_name": request.user.get_full_name() or request.user.username,
+            "contact": request.user.email,
+        })
     return render(request, "applications/apply.html", {"form": form, "event": event})
 
 
@@ -135,10 +135,12 @@ def organization_applications(request):
 @require_POST
 def change_application_status(request, application_id):
     application = get_object_or_404(
-        VolunteerApplication.objects.select_related("event__organization"),
-        pk=application_id)
-    if not OrganizationMember.objects.filter(
-            user=request.user, organization=application.event.organization).exists() and not request.user.is_superuser:
+        VolunteerApplication.objects.select_related("event__organization"), pk=application_id,
+    )
+    is_member = OrganizationMember.objects.filter(
+        user=request.user, organization=application.event.organization,
+    ).exists()
+    if not is_member and not request.user.is_superuser:
         raise PermissionDenied("У вас нет доступа к заявкам этой организации.")
     try:
         set_application_status(application, request.POST.get("status", ""))
