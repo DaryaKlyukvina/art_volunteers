@@ -1,0 +1,12 @@
+[flake8]
+max-line-length = 120
+exclude =
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    */migrations/*,
+    media,
+    staticfiles,
+    # исходный скрипт ПР1 сохранён без изменений как история проекта
+    pr1_initial_script.py

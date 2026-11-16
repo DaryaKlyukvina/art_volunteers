@@ -10,6 +10,7 @@ from .forms import VolunteerApplicationForm
 from .models import VolunteerApplication
 from .services import set_application_status
 
+
 @login_required
 def apply_to_event(request, event_id):
     event = get_object_or_404(Event, pk=event_id, status=Event.Status.PUBLISHED, date__gte=timezone.now())
@@ -26,13 +27,18 @@ def apply_to_event(request, event_id):
             messages.success(request, "Заявка отправлена организатору.")
             return redirect("profile")
     else:
-        form = VolunteerApplicationForm(initial={"applicant_name": request.user.get_full_name() or request.user.username, "contact": request.user.email})
+        form = VolunteerApplicationForm(
+            initial={
+                "applicant_name": request.user.get_full_name() or request.user.username,
+                "contact": request.user.email})
     return render(request, "applications/apply.html", {"form": form, "event": event})
+
 
 @login_required
 def my_applications(request):
     applications = VolunteerApplication.objects.filter(user=request.user).select_related("event", "event__organization")
     return render(request, "applications/mine.html", {"applications": applications})
+
 
 @login_required
 def organization_applications(request):
@@ -43,13 +49,18 @@ def organization_applications(request):
     else:
         applications = VolunteerApplication.objects.filter(event__organization_id__in=organization_ids)
     applications = applications.select_related("user", "event", "event__organization")
-    return render(request, "applications/organization_list.html", {"applications": applications, "memberships": memberships})
+    return render(request, "applications/organization_list.html",
+                  {"applications": applications, "memberships": memberships})
+
 
 @login_required
 @require_POST
 def change_application_status(request, application_id):
-    application = get_object_or_404(VolunteerApplication.objects.select_related("event__organization"), pk=application_id)
-    if not OrganizationMember.objects.filter(user=request.user, organization=application.event.organization).exists() and not request.user.is_superuser:
+    application = get_object_or_404(
+        VolunteerApplication.objects.select_related("event__organization"),
+        pk=application_id)
+    if not OrganizationMember.objects.filter(
+            user=request.user, organization=application.event.organization).exists() and not request.user.is_superuser:
         raise PermissionDenied("У вас нет доступа к заявкам этой организации.")
     try:
         set_application_status(application, request.POST.get("status", ""))

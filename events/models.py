@@ -33,7 +33,7 @@ class Event(models.Model):
     date = models.DateTimeField("Дата и время проведения")
     location = models.CharField("Место проведения", max_length=255)
     volunteers_needed = models.PositiveIntegerField("Нужно волонтёров", default=0,
-                                                     validators=[MinValueValidator(0)])
+                                                    validators=[MinValueValidator(0)])
     ticket_url = models.URLField("Ссылка на покупку билетов", blank=True)
     image = models.ImageField("Изображение мероприятия", upload_to="events/", blank=True, null=True)
     status = models.CharField("Статус", max_length=20, choices=Status.choices, default=Status.DRAFT)
