@@ -61,7 +61,7 @@ class EventCatalogTests(TestCase):
     def test_invalid_date_shows_message(self):
         response = self.client.get(reverse("event_list"), {"date_from": "2026-13-45"})
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(response.context["errors"])
+        self.assertTrue(response.context["form"].errors)
 
     def test_detail_and_404(self):
         self.assertEqual(self.client.get(self.published.get_absolute_url()).status_code, 200)

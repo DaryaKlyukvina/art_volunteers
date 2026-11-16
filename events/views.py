@@ -8,16 +8,17 @@ from django.utils import timezone
 from applications.models import VolunteerApplication
 from organizations.models import Organization
 
+from .forms import EventFilterForm
 from .models import Category, Event
 
-# Допустимые варианты сортировки: значение параметра sort -> поля order_by().
+# Допустимые варианты сортировки: значение поля sort формы -> поля order_by().
 # Пользовательский ввод никогда не передаётся в order_by() напрямую.
-EVENT_SORT_OPTIONS = {
-    "date": ("Сначала ближайшие", ("date",)),
-    "-date": ("Сначала поздние", ("-date",)),
-    "title": ("По названию", ("title", "date")),
-    "free": ("Больше свободных мест", ("-free_slots", "date")),
-    "organization": ("По организации", ("organization__name", "date")),
+EVENT_SORT_FIELDS = {
+    "date": ("date",),
+    "-date": ("-date",),
+    "title": ("title", "date"),
+    "free": ("-free_slots", "date"),
+    "organization": ("organization__name", "date"),
 }
 DEFAULT_EVENT_SORT = "date"
 EVENTS_PER_PAGE = 6
@@ -36,67 +37,41 @@ def parse_date(value, errors, label):
 
 
 def event_list(request):
-    errors = []
     # Методы собственного QuerySet: published() + upcoming() + select_related(), свободные места
     queryset = Event.objects.catalog().with_free_slots()
 
-    # Поиск по нескольким строковым полям
-    query = request.GET.get("q", "").strip()
+    # Форма получает GET-параметры. Если параметров нет, форма не привязана (is_bound = False)
+    form = EventFilterForm(request.GET or None)
+    filters = {}
+    if form.is_bound:
+        form.is_valid()
+        # cleaned_data содержит только прошедшие проверку поля: ошибочное поле не влияет на остальные фильтры
+        filters = form.cleaned_data
+
+    query = filters.get("q")
     if query:
+        # Поиск по нескольким строковым полям
         queryset = queryset.filter(
             Q(title__icontains=query) | Q(description__icontains=query) | Q(location__icontains=query)
         )
-
-    # Фильтр по полю связанной модели: категория по slug
-    category_slug = request.GET.get("category", "").strip()
-    if category_slug:
-        queryset = queryset.filter(category__slug=category_slug)
-
-    # Фильтр по связанной модели: организация
-    organization_id = request.GET.get("organization", "")
-    if organization_id.isdigit():
-        queryset = queryset.filter(organization_id=int(organization_id))
-
-    # Фильтр по диапазону дат
-    date_from = parse_date(request.GET.get("date_from"), errors, "Дата с")
-    date_to = parse_date(request.GET.get("date_to"), errors, "Дата по")
-    if date_from and date_to and date_from > date_to:
-        errors.append("Начальная дата не может быть позже конечной.")
-        date_from = date_to = None
-    if date_from:
-        queryset = queryset.filter(date__date__gte=date_from)
-    if date_to:
-        queryset = queryset.filter(date__date__lte=date_to)
-
-    # exclude(): убрать мероприятия, где уже набрано нужное число волонтёров
-    only_free = request.GET.get("only_free") == "1"
-    if only_free:
+    if filters.get("category"):
+        # Фильтр по полю связанной модели: категория по slug
+        queryset = queryset.filter(category__slug=filters["category"].slug)
+    if filters.get("organization"):
+        queryset = queryset.filter(organization=filters["organization"])
+    if filters.get("date_from"):
+        queryset = queryset.filter(date__date__gte=filters["date_from"])
+    if filters.get("date_to"):
+        queryset = queryset.filter(date__date__lte=filters["date_to"])
+    if filters.get("only_free"):
+        # exclude(): убрать мероприятия, где уже набрано нужное число волонтёров
         queryset = queryset.exclude(free_slots__lte=0)
 
-    # Сортировка только по разрешённым значениям
-    sort = request.GET.get("sort", DEFAULT_EVENT_SORT)
-    if sort not in EVENT_SORT_OPTIONS:
-        sort = DEFAULT_EVENT_SORT
-    queryset = queryset.order_by(*EVENT_SORT_OPTIONS[sort][1])
+    sort = filters.get("sort") or DEFAULT_EVENT_SORT
+    queryset = queryset.order_by(*EVENT_SORT_FIELDS[sort])
 
-    paginator = Paginator(queryset, EVENTS_PER_PAGE)
-    page_obj = paginator.get_page(request.GET.get("page"))
-
-    context = {
-        "page_obj": page_obj,
-        "categories": Category.objects.all(),
-        "organizations": Organization.objects.order_by("name"),
-        "sort_options": [(key, label) for key, (label, _fields) in EVENT_SORT_OPTIONS.items()],
-        "query": query,
-        "selected_category": category_slug,
-        "selected_organization": organization_id,
-        "date_from": request.GET.get("date_from", ""),
-        "date_to": request.GET.get("date_to", ""),
-        "only_free": only_free,
-        "sort": sort,
-        "errors": errors,
-    }
-    return render(request, "events/list.html", context)
+    page_obj = Paginator(queryset, EVENTS_PER_PAGE).get_page(request.GET.get("page"))
+    return render(request, "events/list.html", {"page_obj": page_obj, "form": form})
 
 
 def event_detail(request, slug):
