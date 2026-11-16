@@ -3,13 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}ArtVolunteers{% endblock %}</title>
+    <title>{% block title %}{{ site_name }}{% endblock %}</title>
 </head>
 <body>
 <header>
     <nav>
-        <a href="{% url 'event_list' %}"><strong>ArtVolunteers</strong></a> |
-        <a href="{% url 'event_list' %}">Мероприятия</a> |
+        <a href="{% url 'event_list' %}"><strong>{{ site_name }}</strong></a> |
+        <a href="{% url 'event_list' %}">Мероприятия ({{ upcoming_events_count }})</a> |
         <a href="{% url 'statistics' %}">Статистика</a> |
         {% if user.is_authenticated %}
             <a href="{% url 'profile' %}">Личный кабинет</a> |

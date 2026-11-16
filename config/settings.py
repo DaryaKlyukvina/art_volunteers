@@ -1,3 +1,5 @@
+import sys
+from importlib.util import find_spec
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,6 +39,8 @@ TEMPLATES = [{
         "django.template.context_processors.request",
         "django.contrib.auth.context_processors.auth",
         "django.contrib.messages.context_processors.messages",
+        # Название сайта и количество предстоящих мероприятий для base.html
+        "events.context_processors.site_context",
     ]},
 }]
 WSGI_APPLICATION = "config.wsgi.application"
@@ -62,3 +66,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "profile"
 LOGOUT_REDIRECT_URL = "event_list"
+
+# Django Debug Toolbar — только в режиме разработки, не при запуске тестов
+TESTING = "test" in sys.argv[1:2] or "pytest" in sys.modules
+if DEBUG and not TESTING and find_spec("debug_toolbar"):
+    INSTALLED_APPS.append("debug_toolbar")
+    MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
+    INTERNAL_IPS = ["127.0.0.1"]
