@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}Мероприятия — ArtVolunteers{% endblock %}{% block content %}
+<h1>Актуальные мероприятия</h1>
+<form method="get"><input type="search" name="q" value="{{ query }}" placeholder="Название, описание или место"><select name="category"><option value="">Все категории</option>{% for category in categories %}<option value="{{ category.pk }}" {% if selected_category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select><button>Найти</button></form>
+{% for event in page_obj %}<article><h2><a href="{% url 'event_detail' event.pk %}">{{ event.title }}</a></h2><p>{{ event.date|date:"d.m.Y H:i" }} · {{ event.location }}</p><p>{{ event.organization.name }}{% if event.category %} · {{ event.category.name }}{% endif %}</p><p>{{ event.description|truncatewords:30 }}</p></article>{% empty %}<p>Подходящих мероприятий пока нет.</p>{% endfor %}
+<nav>{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&q={{ query }}&category={{ selected_category }}">Назад</a>{% endif %} Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }} {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&q={{ query }}&category={{ selected_category }}">Далее</a>{% endif %}</nav>
+{% endblock %}

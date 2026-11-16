@@ -1,6 +1,6 @@
 """Точка запуска сервиса поиска волонтёров для арт-мероприятий."""
-import organizations
-import events
+import legacy_organizations as organizations
+import legacy_events as events
 import volunteers
 import registrations
 import storage

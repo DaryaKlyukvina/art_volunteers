@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<h1>Заявка волонтёра</h1><h2>{{ event.title }}</h2><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Отправить заявку</button></form>{% endblock %}

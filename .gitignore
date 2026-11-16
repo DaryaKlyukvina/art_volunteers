@@ -1,6 +1,12 @@
 __pycache__/
-*.pyc
+*.py[cod]
 .venv/
 venv/
 .idea/
 .vscode/
+.pytest_cache/
+.mypy_cache/
+db.sqlite3
+media/
+staticfiles/
+.env

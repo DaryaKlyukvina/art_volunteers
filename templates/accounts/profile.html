@@ -1,0 +1,1 @@
+{% extends "base.html" %}{% block content %}<h1>Личный кабинет</h1><p>Здравствуйте, {{ user.get_full_name|default:user.username }}!</p><p><a href="{% url 'my_applications' %}">Посмотреть мои заявки и их статусы</a></p>{% if user.organization_memberships.exists %}<p><a href="{% url 'organization_applications' %}">Заявки моей организации</a></p>{% endif %}{% endblock %}

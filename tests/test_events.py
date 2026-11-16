@@ -1,6 +1,6 @@
 from datetime import date
 
-from events import add_event, find_event, sort_events_by_date
+from legacy_events import add_event, find_event, sort_events_by_date
 
 
 def test_add_event():
