@@ -3,6 +3,28 @@ from django.db import models
 from events.models import Event
 
 
+class VolunteerApplicationQuerySet(models.QuerySet):
+    """Повторно используемые условия выборки заявок."""
+
+    def pending(self):
+        return self.filter(status=VolunteerApplication.Status.PENDING)
+
+    def accepted(self):
+        return self.filter(status=VolunteerApplication.Status.ACCEPTED)
+
+    def rejected(self):
+        return self.filter(status=VolunteerApplication.Status.REJECTED)
+
+    def for_event(self, event):
+        return self.filter(event=event)
+
+    def for_organizations(self, organization_ids):
+        return self.filter(event__organization_id__in=organization_ids)
+
+    def with_related(self):
+        return self.select_related("user", "event", "event__organization")
+
+
 class VolunteerApplication(models.Model):
     class Status(models.TextChoices):
         PENDING = "pending", "На рассмотрении"
@@ -22,6 +44,8 @@ class VolunteerApplication(models.Model):
     )
     created_at = models.DateTimeField("Дата отправки", auto_now_add=True)
     updated_at = models.DateTimeField("Последнее изменение", auto_now=True)
+
+    objects = VolunteerApplicationQuerySet.as_manager()
 
     class Meta:
         verbose_name = "заявка волонтёра"

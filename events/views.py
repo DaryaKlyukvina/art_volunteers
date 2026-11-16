@@ -1,7 +1,7 @@
 from datetime import date
 
 from django.core.paginator import Paginator
-from django.db.models import Count, F, Q, Sum
+from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 
@@ -35,23 +35,10 @@ def parse_date(value, errors, label):
         return None
 
 
-def annotate_free_slots(queryset):
-    """Добавляет число принятых волонтёров и свободных мест (считаются только принятые заявки)."""
-    return queryset.annotate(
-        accepted_count=Count(
-            "applications",
-            filter=Q(applications__status=VolunteerApplication.Status.ACCEPTED),
-        ),
-    ).annotate(free_slots=F("volunteers_needed") - F("accepted_count"))
-
-
 def event_list(request):
     errors = []
-    queryset = Event.objects.filter(
-        status=Event.Status.PUBLISHED,
-        date__gte=timezone.now(),
-    ).select_related("organization", "category")
-    queryset = annotate_free_slots(queryset)
+    # Методы собственного QuerySet: published() + upcoming() + select_related(), свободные места
+    queryset = Event.objects.catalog().with_free_slots()
 
     # Поиск по нескольким строковым полям
     query = request.GET.get("q", "").strip()
@@ -112,12 +99,13 @@ def event_list(request):
     return render(request, "events/list.html", context)
 
 
-def event_detail(request, pk):
-    queryset = annotate_free_slots(Event.objects.select_related("organization", "category"))
-    event = get_object_or_404(queryset, pk=pk, status=Event.Status.PUBLISHED)
+def event_detail(request, slug):
+    queryset = Event.objects.published().select_related("organization", "category").with_free_slots()
+    event = get_object_or_404(queryset, slug=slug)
     # Другие мероприятия той же организации: срез QuerySet ограничивает выборку тремя записями
     more_events = (
-        Event.objects.filter(organization=event.organization, status=Event.Status.PUBLISHED, date__gte=timezone.now())
+        Event.objects.published().upcoming()
+        .filter(organization=event.organization)
         .exclude(pk=event.pk)
         .order_by("date")[:3]
     )
@@ -133,7 +121,7 @@ def statistics(request):
         accepted=Count("id", filter=Q(status=VolunteerApplication.Status.ACCEPTED)),
         rejected=Count("id", filter=Q(status=VolunteerApplication.Status.REJECTED)),
     )
-    event_stats = Event.objects.filter(status=Event.Status.PUBLISHED).aggregate(
+    event_stats = Event.objects.published().aggregate(
         published=Count("id"),
         upcoming=Count("id", filter=Q(date__gte=now)),
         volunteers_needed=Sum("volunteers_needed", filter=Q(date__gte=now)),

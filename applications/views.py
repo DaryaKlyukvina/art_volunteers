@@ -4,7 +4,6 @@ from django.core.exceptions import PermissionDenied, ValidationError
 from django.core.paginator import Paginator
 from django.db.models import F, Q
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from events.models import Event
@@ -29,10 +28,10 @@ APPLICATIONS_PER_PAGE = 10
 
 @login_required
 def apply_to_event(request, event_id):
-    event = get_object_or_404(Event, pk=event_id, status=Event.Status.PUBLISHED, date__gte=timezone.now())
+    event = get_object_or_404(Event.objects.published().upcoming(), pk=event_id)
     if VolunteerApplication.objects.filter(user=request.user, event=event).exists():
         messages.info(request, "Вы уже отправляли заявку на это мероприятие.")
-        return redirect("event_detail", pk=event.pk)
+        return redirect(event)
     if request.method == "POST":
         form = VolunteerApplicationForm(request.POST)
         if form.is_valid():
@@ -52,7 +51,7 @@ def apply_to_event(request, event_id):
 
 @login_required
 def my_applications(request):
-    applications = VolunteerApplication.objects.filter(user=request.user).select_related("event", "event__organization")
+    applications = VolunteerApplication.objects.filter(user=request.user).with_related()
     return render(request, "applications/mine.html", {"applications": applications})
 
 
@@ -65,7 +64,7 @@ def organization_applications(request):
         events = Event.objects.all()
     else:
         # Фильтрация по полю связанной модели: организация мероприятия
-        applications = VolunteerApplication.objects.filter(event__organization_id__in=organization_ids)
+        applications = VolunteerApplication.objects.for_organizations(organization_ids)
         events = Event.objects.filter(organization_id__in=organization_ids)
     errors = []
 

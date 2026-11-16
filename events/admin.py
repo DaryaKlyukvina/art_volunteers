@@ -34,20 +34,22 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
     form = EventAdminForm
-    list_display = ("title", "organization", "category", "date", "status", "volunteers_needed", "accepted_count")
+    list_display = ("title", "organization", "category", "date", "status", "volunteers_needed", "accepted_count",
+                    "is_large")
     list_display_links = ("title",)
     list_editable = ("status", "volunteers_needed")
-    list_filter = ("status", "category", "organization", "date")
+    list_filter = ("status", "is_large", "category", "organization", "date")
     search_fields = ("title", "description", "location", "organization__name")
     list_select_related = ("organization", "category")
     ordering = ("date",)
     list_per_page = 20
     date_hierarchy = "date"
     autocomplete_fields = ("organization", "category")
-    readonly_fields = ("created_at",)
+    readonly_fields = ("created_at", "is_large")
+    prepopulated_fields = {"slug": ("title",)}
     fieldsets = (
-        (None, {"fields": ("title", "organization", "category", "status")}),
-        ("Проведение", {"fields": ("date", "location", "volunteers_needed", "ticket_url")}),
+        (None, {"fields": ("title", "slug", "organization", "category", "status")}),
+        ("Проведение", {"fields": ("date", "location", "volunteers_needed", "is_large", "ticket_url")}),
         ("Описание", {"fields": ("description", "image", "created_at")}),
     )
     inlines = (VolunteerApplicationInline,)

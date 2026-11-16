@@ -64,8 +64,8 @@ class EventCatalogTests(TestCase):
         self.assertTrue(response.context["errors"])
 
     def test_detail_and_404(self):
-        self.assertEqual(self.client.get(reverse("event_detail", args=[self.published.pk])).status_code, 200)
-        self.assertEqual(self.client.get(reverse("event_detail", args=[99999])).status_code, 404)
+        self.assertEqual(self.client.get(self.published.get_absolute_url()).status_code, 200)
+        self.assertEqual(self.client.get(reverse("event_detail", args=["net-takogo"])).status_code, 404)
 
     def test_statistics_counts_statuses_and_empty_categories(self):
         response = self.client.get(reverse("statistics"))

@@ -27,7 +27,7 @@
     <h2 class="h4 mt-5">Ещё мероприятия организации</h2>
     <ul>
         {% for item in more_events %}
-            <li><a href="{% url 'event_detail' item.pk %}">{{ item.title }}</a> — {{ item.date|date:"d.m.Y" }}</li>
+            <li><a href="{{ item.get_absolute_url }}">{{ item.title }}</a> — {{ item.date|date:"d.m.Y" }}</li>
         {% endfor %}
     </ul>
 {% endif %}

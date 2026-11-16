@@ -71,7 +71,7 @@
             <article class="card h-100 event-card">
                 {% if event.image %}<img src="{{ event.image.url }}" class="card-img-top" alt="{{ event.title }}">{% endif %}
                 <div class="card-body">
-                    <h2 class="h5"><a href="{% url 'event_detail' event.pk %}">{{ event.title }}</a></h2>
+                    <h2 class="h5"><a href="{{ event.get_absolute_url }}">{{ event.title }}</a></h2>
                     <p class="mb-1">{{ event.date|date:"d.m.Y H:i" }} · {{ event.location }}</p>
                     <p class="mb-1 text-muted">{{ event.organization.name }}{% if event.category %} · {{ event.category.name }}{% endif %}</p>
                     <p class="mb-2">{{ event.description|truncatewords:20 }}</p>
