@@ -1,1 +1,90 @@
-{% extends "base.html" %}{% block content %}<h1>Заявки моей организации</h1>{% for application in applications %}<article><h2>{{ application.event.title }} — {{ application.applicant_name }}</h2><p>Пользователь: {{ application.user.username }} ({{ application.user.email }})</p><p>Контакт: {{ application.contact }}</p><p>Опыт: {{ application.experience|default:"Не указан" }}</p><p>Статус: {{ application.get_status_display }}</p><form method="post" action="{% url 'change_application_status' application.pk %}">{% csrf_token %}<button name="status" value="accepted">Принять</button><button name="status" value="rejected">Отклонить</button></form></article>{% empty %}<p>Заявок пока нет или у вас нет назначенной организации.</p>{% endfor %}{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Заявки организации — ArtVolunteers{% endblock %}
+
+{% block content %}
+<h1 class="mb-3">Заявки моей организации</h1>
+{% if memberships %}
+    <p class="text-muted">Организации: {% for m in memberships %}{{ m.organization.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+{% endif %}
+
+<form method="get" class="card card-body mb-4">
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label" for="id_event">Мероприятие</label>
+            <select class="form-select" id="id_event" name="event">
+                <option value="">Все мероприятия</option>
+                {% for event in events %}
+                    <option value="{{ event.pk }}" {% if selected_event == event.pk|stringformat:"s" %}selected{% endif %}>{{ event.title }} ({{ event.date|date:"d.m.Y" }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="id_status">Статус</label>
+            <select class="form-select" id="id_status" name="status">
+                <option value="">Любой</option>
+                {% for value, label in statuses %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-5">
+            <label class="form-label" for="id_q">Волонтёр</label>
+            <input class="form-control" type="search" id="id_q" name="q" value="{{ query }}" placeholder="Имя, логин или контакт">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="id_date_from">Подана с</label>
+            <input class="form-control" type="date" id="id_date_from" name="date_from" value="{{ date_from }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="id_date_to">Подана по</label>
+            <input class="form-control" type="date" id="id_date_to" name="date_to" value="{{ date_to }}">
+        </div>
+        <div class="col-md-3">
+            <label class="form-label" for="id_sort">Сортировка</label>
+            <select class="form-select" id="id_sort" name="sort">
+                {% for key, label in sort_options %}
+                    <option value="{{ key }}" {% if key == sort %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="id_hide_rejected" name="hide_rejected" value="1" {% if hide_rejected %}checked{% endif %}>
+                <label class="form-check-label" for="id_hide_rejected">Скрыть отклонённые</label>
+            </div>
+        </div>
+    </div>
+    <div class="mt-3">
+        <button class="btn btn-primary" type="submit">Применить</button>
+        <a class="btn btn-outline-secondary" href="{% url 'organization_applications' %}">Сбросить</a>
+    </div>
+</form>
+
+{% for error in errors %}
+    <div class="alert alert-warning">{{ error }}</div>
+{% endfor %}
+
+<p class="text-muted">Найдено заявок: {{ page_obj.paginator.count }}</p>
+
+{% for application in page_obj %}
+    <article class="card card-body mb-3">
+        <h2 class="h5">{{ application.event_title }} — {{ application.applicant_name }}</h2>
+        <p class="mb-1">Мероприятие: {{ application.event_date|date:"d.m.Y H:i" }} · заявка от {{ application.created_at|date:"d.m.Y H:i" }}</p>
+        <p class="mb-1">Пользователь: {{ application.username }} ({{ application.user_email|default:"почта не указана" }})</p>
+        <p class="mb-1">Контакт: {{ application.contact }}</p>
+        <p class="mb-2">Опыт: {{ application.experience|default:"Не указан" }}</p>
+        <p class="mb-2">Статус: <span class="badge status-{{ application.status }}">{{ application.status_label }}</span></p>
+        <form method="post" action="{% url 'change_application_status' application.id %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button class="btn btn-sm btn-success" name="status" value="accepted">Принять</button>
+            <button class="btn btn-sm btn-outline-danger" name="status" value="rejected">Отклонить</button>
+        </form>
+    </article>
+{% empty %}
+    <p class="text-muted">Заявок нет: измените условия фильтра или проверьте, назначена ли вам организация.</p>
+{% endfor %}
+
+{% include "includes/pagination.html" %}
+{% endblock %}
