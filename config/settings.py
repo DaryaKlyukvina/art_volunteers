@@ -73,3 +73,4 @@ if DEBUG and not TESTING and find_spec("debug_toolbar"):
     INSTALLED_APPS.append("debug_toolbar")
     MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
     INTERNAL_IPS = ["127.0.0.1"]
+    DEBUG_TOOLBAR_CONFIG = {"SHOW_COLLAPSED": True}  # панель свёрнута, открывается по кнопке «DjDT»

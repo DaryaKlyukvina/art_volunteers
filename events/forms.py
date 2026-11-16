@@ -131,6 +131,7 @@ class EventForm(BootstrapFormMixin, forms.ModelForm):
             if organizations.count() == 1 and not self.instance.pk:
                 self.fields["organization"].initial = organizations.first()
         self.fields["organization"].empty_label = None
+        self.fields["category"].empty_label = "Без категории"
         self.fields["status"].choices = self.STATUS_CHOICES
         self.fields["image"].validators.append(validate_image_size)
         self.apply_bootstrap()

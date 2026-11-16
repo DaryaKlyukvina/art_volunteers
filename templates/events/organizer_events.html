@@ -26,7 +26,7 @@
             <td><span class="badge event-status-{{ event.status }}">{{ event.get_status_display }}</span></td>
             <td>{{ event.accepted_count }} / {{ event.volunteers_needed }}</td>
             <td class="text-end text-nowrap">
-                {% if event.status != "cancelled" %}
+                {% if event.status == "draft" or event.status == "published" %}
                     <a class="btn btn-sm btn-outline-primary" href="{% url 'event_update' event.pk %}">Изменить</a>
                     {# Отмена — только POST-запросом с CSRF-токеном, не обычной ссылкой #}
                     <form method="post" action="{% url 'event_cancel' event.pk %}" class="d-inline"

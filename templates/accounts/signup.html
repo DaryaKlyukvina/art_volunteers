@@ -1,1 +1,16 @@
-{% extends "base.html" %}{% block content %}<h1>Регистрация</h1><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Создать аккаунт</button></form>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Регистрация — {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <h1 class="mb-3">Регистрация</h1>
+        <form method="post" class="card card-body">
+            {% csrf_token %}
+            {% include "includes/form_fields.html" %}
+            <button type="submit" class="btn btn-primary">Создать аккаунт</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

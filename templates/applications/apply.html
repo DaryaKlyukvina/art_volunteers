@@ -1,1 +1,17 @@
-{% extends "base.html" %}{% block content %}<h1>Заявка волонтёра</h1><h2>{{ event.title }}</h2><form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Отправить заявку</button></form>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Заявка волонтёра — {{ site_name }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <h1 class="mb-1">Заявка волонтёра</h1>
+        <p class="lead"><a href="{{ event.get_absolute_url }}">{{ event.title }}</a> · {{ event.date|date:"d.m.Y H:i" }}</p>
+        <form method="post" class="card card-body" novalidate>
+            {% csrf_token %}
+            {% include "includes/form_fields.html" %}
+            <button type="submit" class="btn btn-primary">Отправить заявку</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

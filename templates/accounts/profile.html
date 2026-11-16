@@ -1,1 +1,15 @@
-{% extends "base.html" %}{% block content %}<h1>Личный кабинет</h1><p>Здравствуйте, {{ user.get_full_name|default:user.username }}!</p><p><a href="{% url 'my_applications' %}">Посмотреть мои заявки и их статусы</a></p>{% if user.organization_memberships.exists %}<p><a href="{% url 'organization_applications' %}">Заявки моей организации</a></p>{% endif %}{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Личный кабинет — {{ site_name }}{% endblock %}
+
+{% block content %}
+<h1>Личный кабинет</h1>
+<p>Здравствуйте, {{ user.get_full_name|default:user.username }}!</p>
+<ul>
+    <li><a href="{% url 'my_applications' %}">Мои заявки и их статусы</a></li>
+    {% if user.organization_memberships.exists or user.is_superuser %}
+        <li><a href="{% url 'organizer_events' %}">Мероприятия моей организации</a></li>
+        <li><a href="{% url 'organization_applications' %}">Заявки моей организации</a></li>
+    {% endif %}
+</ul>
+{% endblock %}

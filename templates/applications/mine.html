@@ -1,1 +1,18 @@
-{% extends "base.html" %}{% block content %}<h1>Мои заявки</h1>{% for application in applications %}<article><h2>{{ application.event.title }}</h2><p>{{ application.event.date|date:"d.m.Y H:i" }} · {{ application.event.organization.name }}</p><p>Контакт: {{ application.contact }}</p><p>Опыт: {{ application.experience|default:"Не указан" }}</p><p>Статус: {{ application.get_status_display }}</p></article>{% empty %}<p>Вы пока не отправляли заявки.</p>{% endfor %}{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Мои заявки — {{ site_name }}{% endblock %}
+
+{% block content %}
+<h1 class="mb-3">Мои заявки</h1>
+{% for application in applications %}
+    <article class="card card-body mb-3">
+        <h2 class="h5"><a href="{{ application.event.get_absolute_url }}">{{ application.event.title }}</a></h2>
+        <p class="mb-1">{{ application.event.date|date:"d.m.Y H:i" }} · {{ application.event.organization.name }}</p>
+        <p class="mb-1">Контакт: {{ application.contact }}</p>
+        <p class="mb-2">Опыт: {{ application.experience|default:"Не указан" }}</p>
+        <p class="mb-0">Статус: <span class="badge status-{{ application.status }}">{{ application.get_status_display }}</span></p>
+    </article>
+{% empty %}
+    <p class="text-muted">Вы пока не отправляли заявки. <a href="{% url 'event_list' %}">Найти мероприятие</a></p>
+{% endfor %}
+{% endblock %}

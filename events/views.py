@@ -183,8 +183,8 @@ def event_create(request):
 def event_update(request, pk):
     # Чужое или несуществующее мероприятие -> 404
     event = get_object_or_404(managed_events(request.user), pk=pk)
-    if event.status == Event.Status.CANCELLED:
-        messages.error(request, "Отменённое мероприятие нельзя редактировать.")
+    if event.status in (Event.Status.CANCELLED, Event.Status.COMPLETED):
+        messages.error(request, "Отменённое или завершённое мероприятие нельзя редактировать.")
         return redirect("organizer_events")
     organizations = user_organizations(request.user)
     if request.method == "POST":
@@ -204,6 +204,9 @@ def event_update(request, pk):
 def event_cancel(request, pk):
     """Отмена только POST-запросом с CSRF-токеном; запись остаётся в базе со статусом «Отменено»."""
     event = get_object_or_404(managed_events(request.user), pk=pk)
+    if event.status not in (Event.Status.DRAFT, Event.Status.PUBLISHED):
+        messages.error(request, "Отменить можно только черновик или опубликованное мероприятие.")
+        return redirect("organizer_events")
     event.cancel()
     messages.success(request, f"Мероприятие «{event.title}» отменено. Площадка на эту дату освобождена.")
     return redirect("organizer_events")
